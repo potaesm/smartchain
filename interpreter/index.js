@@ -1,5 +1,8 @@
 const STOP = 'STOP';
 const ADD = 'ADD';
+const SUB = 'SUB';
+const MUL = 'MUL';
+const DIV = 'DIV';
 const PUSH = 'PUSH';
 
 class Interpreter {
@@ -31,6 +34,24 @@ class Interpreter {
 						this.state.stack.push(a + b);
 						break;
 					}
+					case SUB: {
+						const a = this.state.stack.pop();
+						const b = this.state.stack.pop();
+						this.state.stack.push(a - b);
+						break;
+					}
+					case MUL: {
+						const a = this.state.stack.pop();
+						const b = this.state.stack.pop();
+						this.state.stack.push(a * b);
+						break;
+					}
+					case DIV: {
+						const a = this.state.stack.pop();
+						const b = this.state.stack.pop();
+						this.state.stack.push(a / b);
+						break;
+					}
 					default:
 						break;
 				}
@@ -42,6 +63,15 @@ class Interpreter {
 	}
 }
 
-const interpreter = new Interpreter();
-const code = [PUSH, 2, PUSH, 3, ADD, STOP];
-console.log(interpreter.runCode(code));
+let code = [PUSH, 2, PUSH, 3, ADD, STOP];
+let result = new Interpreter().runCode(code);
+console.log(code.toString(), '=>', result);
+code = [PUSH, 2, PUSH, 3, SUB, STOP];
+result = new Interpreter().runCode(code);
+console.log(code.toString(), '=>', result);
+code = [PUSH, 2, PUSH, 3, MUL, STOP];
+result = new Interpreter().runCode(code);
+console.log(code.toString(), '=>', result);
+code = [PUSH, 2, PUSH, 3, DIV, STOP];
+result = new Interpreter().runCode(code);
+console.log(code.toString(), '=>', result);

@@ -4,6 +4,11 @@ const SUB = 'SUB';
 const MUL = 'MUL';
 const DIV = 'DIV';
 const PUSH = 'PUSH';
+const LT = 'LT';
+const GT = 'GT';
+const EQ = 'EQ';
+const AND = 'AND';
+const OR = 'OR';
 
 class Interpreter {
 	constructor() {
@@ -29,8 +34,6 @@ class Interpreter {
 						break;
 					}
 					case ADD: {
-						const a = this.state.stack.pop();
-						const b = this.state.stack.pop();
 						this.state.stack.push(a + b);
 						break;
 					}
@@ -52,6 +55,36 @@ class Interpreter {
 						this.state.stack.push(a / b);
 						break;
 					}
+					case LT: {
+						const a = this.state.stack.pop();
+						const b = this.state.stack.pop();
+						this.state.stack.push(a < b ? 1 : 0);
+						break;
+					}
+					case GT: {
+						const a = this.state.stack.pop();
+						const b = this.state.stack.pop();
+						this.state.stack.push(a > b ? 1 : 0);
+						break;
+					}
+					case EQ: {
+						const a = this.state.stack.pop();
+						const b = this.state.stack.pop();
+						this.state.stack.push(a == b ? 1 : 0);
+						break;
+					}
+					case AND: {
+						const a = this.state.stack.pop();
+						const b = this.state.stack.pop();
+						this.state.stack.push(a && b);
+						break;
+					}
+					case OR: {
+						const a = this.state.stack.pop();
+						const b = this.state.stack.pop();
+						this.state.stack.push(a || b);
+						break;
+					}
 					default:
 						break;
 				}
@@ -63,15 +96,19 @@ class Interpreter {
 	}
 }
 
-let code = [PUSH, 2, PUSH, 3, ADD, STOP];
-let result = new Interpreter().runCode(code);
-console.log(code.toString(), '=>', result);
-code = [PUSH, 2, PUSH, 3, SUB, STOP];
-result = new Interpreter().runCode(code);
-console.log(code.toString(), '=>', result);
-code = [PUSH, 2, PUSH, 3, MUL, STOP];
-result = new Interpreter().runCode(code);
-console.log(code.toString(), '=>', result);
-code = [PUSH, 2, PUSH, 3, DIV, STOP];
-result = new Interpreter().runCode(code);
-console.log(code.toString(), '=>', result);
+const codeList = [
+	[PUSH, 2, PUSH, 3, ADD, STOP],
+	[PUSH, 2, PUSH, 3, SUB, STOP],
+	[PUSH, 2, PUSH, 3, MUL, STOP],
+	[PUSH, 2, PUSH, 3, DIV, STOP],
+	[PUSH, 2, PUSH, 3, LT, STOP],
+	[PUSH, 2, PUSH, 3, GT, STOP],
+	[PUSH, 2, PUSH, 2, EQ, STOP],
+	[PUSH, 1, PUSH, 0, AND, STOP],
+	[PUSH, 1, PUSH, 0, OR, STOP]
+];
+
+for (let i = 0; i < codeList.length; i++) {
+	const code = codeList[i];
+	console.log(code.toString(), '=>', new Interpreter().runCode(code));
+}

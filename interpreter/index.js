@@ -9,31 +9,54 @@ const GT = 'GT';
 const EQ = 'EQ';
 const AND = 'AND';
 const OR = 'OR';
+const JUMP = 'JUMP';
+const JUMPI = 'JUMPI';
+
+const EXECUTION_COMPLETE = 'Execution complete';
+const EXECUTION_LIMIT = 10000;
 
 class Interpreter {
 	constructor() {
 		this.state = {
 			programCounter: 0,
 			stack: [],
-			code: []
+			code: [],
+			executionCount: 0
 		};
+	}
+	__jump() {
+		const destination = this.state.stack.pop();
+		if (destination < 0 || destination > this.state.code.length) {
+			throw new Error(`Invalid destination ${destination}`);
+		}
+		this.state.programCounter = destination;
+		this.state.programCounter--;
 	}
 	runCode(code) {
 		this.state.code = code;
 		while (this.state.programCounter < this.state.code.length) {
+			this.state.executionCount++;
+			if (this.state.executionCount > EXECUTION_LIMIT) {
+				throw new Error(`Execution limit of ${EXECUTION_LIMIT} exceeded`);
+			}
 			const opCode = this.state.code[this.state.programCounter];
 			try {
 				switch (opCode) {
 					case STOP: {
-						throw new Error('Execution Complete');
+						throw new Error(EXECUTION_COMPLETE);
 					}
 					case PUSH: {
 						this.state.programCounter++;
+						if (this.state.programCounter === this.state.code.length) {
+							throw new Error(`The 'PUSH' instruction cannot be last`);
+						}
 						const value = this.state.code[this.state.programCounter];
 						this.state.stack.push(value);
 						break;
 					}
 					case ADD: {
+						const a = this.state.stack.pop();
+						const b = this.state.stack.pop();
 						this.state.stack.push(a + b);
 						break;
 					}
@@ -85,11 +108,25 @@ class Interpreter {
 						this.state.stack.push(a || b);
 						break;
 					}
+					case JUMP: {
+						this.__jump();
+						break;
+					}
+					case JUMPI: {
+						const condition = this.state.stack.pop();
+						if (condition == 1) {
+							this.__jump();
+						}
+						break;
+					}
 					default:
 						break;
 				}
 			} catch (error) {
-				return this.state.stack[this.state.stack.length - 1];
+				if (error.message === EXECUTION_COMPLETE) {
+					return this.state.stack[this.state.stack.length - 1];
+				}
+				throw error;
 			}
 			this.state.programCounter++;
 		}
@@ -105,10 +142,18 @@ const codeList = [
 	[PUSH, 2, PUSH, 3, GT, STOP],
 	[PUSH, 2, PUSH, 2, EQ, STOP],
 	[PUSH, 1, PUSH, 0, AND, STOP],
-	[PUSH, 1, PUSH, 0, OR, STOP]
+	[PUSH, 1, PUSH, 0, OR, STOP],
+	[PUSH, 6, JUMP, PUSH, 0, JUMP, PUSH, 'JUMP Successful', STOP],
+	[PUSH, 8, PUSH, 1, JUMPI, PUSH, 0, JUMP, PUSH, 'JUMPI Successful', STOP],
+	[PUSH, 1, PUSH],
+	[PUSH, 0, JUMP, STOP]
 ];
 
 for (let i = 0; i < codeList.length; i++) {
-	const code = codeList[i];
-	console.log(code.toString(), '=>', new Interpreter().runCode(code));
+	try {
+		const code = codeList[i];
+		console.log(code.toString(), '=>', new Interpreter().runCode(code));
+	} catch (error) {
+		console.log(error.message);
+	}
 }
